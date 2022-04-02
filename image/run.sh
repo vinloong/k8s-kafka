@@ -69,7 +69,6 @@ while getopts "$optspec" optchar; do
     esac
 done
 
+echo ${CONFIG_FILE}
 
-modify_config \ 
-&& exec bin/kafka-storage.sh format -t `./bin/kafka-storage.sh random-uuid` -c ${CONFIG_FILE} --ignore-formatted \ 
-&& exec ./bin/kafka-server-start.sh ${CONFIG_FILE}
+modify_config && bin/kafka-storage.sh format -t `./bin/kafka-storage.sh random-uuid` -c ${CONFIG_FILE} --ignore-formatted && ./bin/kafka-server-start.sh ${CONFIG_FILE}

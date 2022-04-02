@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-voter
+  namespace: ops
+  labels:
+    app: kafka
+spec:
+  ports:
+  - port: 9093
+    name: voter-port
+  clusterIP: None
+  selector:
+    app: kafka
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: kafka-pdb
+  namespace: ops
+spec:
+  selector:
+    matchLabels:
+      app: kafka
+  maxUnavailable: 1
+---  
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: kafka
+  namespace: ops
+spec:
+  serviceName: kafka
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:         
+      containers:
+        - name: kafka
+          image: repository.anxinyun.cn/devops/fs-kafka:2.13-3.1.0-220402
+          command:
+            - "bash"
+            - "-c"
+            - "exec ./run.sh --node_count=3"
+          ports:
+            - name: voter-port
+              containerPort: 9093
+              protocol: TCP
+            - name: plaintext-port
+              containerPort: 9092
+              protocol: TCP
+          env:
+          - name: KAFKA_HEAP_OPTS
+            value : "-Xmx1G -Xms1G"              
+          volumeMounts:
+            - name: data_dir
+              mountPath: /tmp/
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - kafka
+              topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        kafka: "true"  
+      volumes:
+        - name: data_dir
+          hostPath:
+            path: /home/services/kafka/data
+
