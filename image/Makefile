@@ -1,13 +1,12 @@
-VERSION=kafka_2.13-3.1.0
+VERSION=2.13-3.1.0-220402
 PROJECT_ID=devops
-PROJECT=repository.anxinyun.cn/${PROJECT_ID}
+PROJECT=<your-image-repository>/${PROJECT_ID}
 
 all: build
 
 build:
-	docker build --pull -t ${PROJECT}/fs-kafka:${VERSION} .
+	docker build --pull -t ${PROJECT}/dragon-kafka:${VERSION} .
 
 push: build
-	gcloud docker -- push ${PROJECT}/fs-kafka:${VERSION}
+	docker push ${PROJECT}/dragon-kafka:${VERSION}
 
-.PHONY: all build push
